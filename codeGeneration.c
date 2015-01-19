@@ -316,7 +316,17 @@ int codeGenConvertFromIntToFloat(int intRegIndex)
 {
     /*TODO*/
     int floatRegisterIndex;
+    char* reg1Name = NULL;
+    floatRegisterIndex = getRegister(FLOAT_REG);
+    codeGenPrepareRegister(FLOAT_REG, floatRegisterIndex, 0, 0, &reg1Name);
 
+    char* reg2Name = NULL;
+    codeGenPrepareRegister(INT_REG, intRegIndex, 1, 0, &reg2Name);
+
+    printf("vmov.f32 %s %s\n", reg1Name, reg2Name);
+    printf("vcvt.f32.s32 %s %s\n", reg1Name, reg1Name);
+
+    codeGenSaveToMemoryIfPsuedoRegister(FLOAT_REG, floatRegisterIndex, reg1Name);
     return floatRegisterIndex;
 }
 
@@ -512,50 +522,50 @@ void codeGenExprNode(AST_NODE* exprNode)
                 break;
             case BINARY_OP_EQ:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "moveq",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "moveq",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_GE:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "movge",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "movge",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_LE:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "movle",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "movle",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_NE:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "movne",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "movne",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_GT:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "movgt",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "movgt",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_LT:
                 exprNode->registerIndex = getRegister(INT_REG);
-		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
-		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
-		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
-		codeGenSetReg(INT_REG, "movlt",exprNode->registerIndex, 1);
+        		codeGen2RegInstruction(FLOAT_REG, "vcmp.f32", leftOp->registerIndex, rightOp->registerIndex);
+        		fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        		codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
+        		codeGenSetReg(INT_REG, "movlt",exprNode->registerIndex, 1);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_AND:
@@ -593,32 +603,32 @@ void codeGenExprNode(AST_NODE* exprNode)
                 codeGen3RegInstruction(INT_REG, "sdiv", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 break;
             case BINARY_OP_EQ:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "moveq",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_GE:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "movge",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_LE:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "movle",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_NE:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "movne",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_GT:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "movgt",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_LT:
-	        codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
+	            codeGen2RegInstruction(INT_REG, "cmp", leftOp->registerIndex, rightOp->registerIndex);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "movlt",exprNode->registerIndex, 1);
                 break;
@@ -675,7 +685,7 @@ void codeGenExprNode(AST_NODE* exprNode)
                 break;
             case UNARY_OP_LOGICAL_NEGATION:
                 exprNode->registerIndex = operand->registerIndex;
-		codeGenCmp0Instruction(INT_REG,"cmp",exprNode->registerIndex,0);
+		        codeGenCmp0Instruction(INT_REG,"cmp",exprNode->registerIndex,0);
                 codeGenSetReg(INT_REG, "mov",exprNode->registerIndex, 0);
                 codeGenSetReg(INT_REG, "moveq",exprNode->registerIndex, 1);
                 break;
@@ -963,29 +973,36 @@ void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode)
             }
             else
             {		
-		    int tmp_reg_index = getRegister(INT_REG);
-		    char *tmp_reg_name = intRegisterName[tmp_reg_index] ;
-		fprintf(g_codeGenOutputFp,"ldr %s, =_g_%s\n",tmp_reg_name,leftOp->semantic_value.identifierSemanticValue.identifierName);
-		fprintf(g_codeGenOutputFp,"str %s, [%s, #0]\n",rightOpRegName, tmp_reg_name);
-	freeRegister(INT_REG, tmp_reg_index);	
+            	int tmp_reg_index = getRegister(INT_REG);
+            	char *tmp_reg_name = intRegisterName[tmp_reg_index] ;
+                fprintf(g_codeGenOutputFp,"ldr %s, =_g_%s\n",tmp_reg_name,leftOp->semantic_value.identifierSemanticValue.identifierName);
+            	fprintf(g_codeGenOutputFp,"str %s, [%s, #0]\n",rightOpRegName, tmp_reg_name);
+            	freeRegister(INT_REG, tmp_reg_index);	
             }
             leftOp->registerIndex = rightOp->registerIndex;
         }
         else if(leftOp->dataType == FLOAT_TYPE)
         {
             char* rightOpRegName = NULL;
+            //type conversion
+            if(rightOp->dataType == INT_TYPE)
+            {
+                rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+            }
+
             codeGenPrepareRegister(FLOAT_REG, rightOp->registerIndex, 1, 0, &rightOpRegName);
+            
             if(!isGlobalVariable(leftOp->semantic_value.identifierSemanticValue.symbolTableEntry))
             {
                 fprintf(g_codeGenOutputFp, "vstr.f32 %s, [fp, #%d]\n", rightOpRegName, leftOp->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR);
             }
             else
             {
-		    int tmp_reg_index = getRegister(INT_REG);
-		    char *tmp_reg_name = intRegisterName[tmp_reg_index] ;
+		        int tmp_reg_index = getRegister(INT_REG);
+		        char *tmp_reg_name = intRegisterName[tmp_reg_index] ;
                 fprintf(g_codeGenOutputFp,"ldr %s, =_g_%s\n",tmp_reg_name,leftOp->semantic_value.identifierSemanticValue.identifierName);
                 fprintf(g_codeGenOutputFp, "vstr.f32 %s, [%s, #0]\n", rightOpRegName,tmp_reg_name);
-	freeRegister(INT_REG, tmp_reg_index);	
+	            freeRegister(INT_REG, tmp_reg_index);	
             }
             leftOp->registerIndex = rightOp->registerIndex;
         }
