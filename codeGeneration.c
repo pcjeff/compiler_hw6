@@ -342,8 +342,8 @@ int codeGenConvertFromFloatToInt(int floatRegIndex)
     char* reg2Name = NULL;
     codeGenPrepareRegister(FLOAT_REG, floatRegIndex, 1, 0, &reg2Name);
 
-    fprintf(g_codeGenOutputFp, "mov %s, %s\n", reg1Name, reg2Name);
-    fprintf(g_codeGenOutputFp, "vcvt.s32.f32 %s, %s\n", reg1Name, reg1Name);
+    fprintf(g_codeGenOutputFp, "vcvt.s32.f32 %s, %s\n", reg2Name, reg2Name);
+    fprintf(g_codeGenOutputFp, "vmov.f32 %s, %s\n", reg1Name, reg2Name);
 
     codeGenSaveToMemoryIfPsuedoRegister(INT_REG, intRegisterIndex, reg1Name);
     return intRegisterIndex;
