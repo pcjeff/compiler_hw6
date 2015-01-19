@@ -405,21 +405,20 @@ void codeGenGlobalVariable(AST_NODE* varaibleDeclListNode)
                     if(idNode->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID)
                     {
                         AST_NODE* val = idNode->child;
-                        if(idNode->dataType == INT_TYPE && val->dataType == FLOAT_TYPE)
-                        {
-                            val->semantic_value.const1->const_u.intval = val->semantic_value.const1->const_u.fval;
-                        }
-                        else if(idNode->dataType == FLOAT_TYPE  && val->dataType == INT_TYPE)
-                        {
-                            val->semantic_value.const1->const_u.fval = val->semantic_value.const1->const_u.intval;
-                        }
+
                         if(idTypeDescriptor->properties.dataType == INT_TYPE)
                         {
-                            fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
+                            if(val->dataType == FLOAT_TYPE)
+                                fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
+                            else
+                                fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
                         }
                         else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
                         {
-                            fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
+                            if(val->dataType == INT_TYPE)
+                                fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
+                            else
+                                fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
                         }
                     }
                     else
