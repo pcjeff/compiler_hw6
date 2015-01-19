@@ -406,7 +406,7 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                     {
                         AST_NODE* val = idNode->child;
                         
-                        if(idNode->child->semantic_value.const1->const_type == INTEGERC)
+                        if(idTypeDescriptor->properties.dataType == INT_TYPE)
                         {
                             char* reg1Name = NULL;
                             if(val->dataType == FLOAT_TYPE)
@@ -416,7 +416,7 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                             else
                             {}
                         }
-                        else if(idNode->child->semantic_value.const1->const_type == FLOATC)
+                        else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
                         {
                             char* reg1Name = NULL;
                             if(val->dataType == INT_TYPE)
