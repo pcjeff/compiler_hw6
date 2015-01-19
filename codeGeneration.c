@@ -409,14 +409,14 @@ void codeGenGlobalVariable(AST_NODE* varaibleDeclListNode)
                         if(idTypeDescriptor->properties.dataType == INT_TYPE)
                         {
                             if(val->dataType == FLOAT_TYPE)
-                                fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
+                                fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, (int)val->semantic_value.const1->const_u.fval);
                             else
                                 fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
                         }
                         else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
                         {
                             if(val->dataType == INT_TYPE)
-                                fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
+                                fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, (float)val->semantic_value.const1->const_u.intval);
                             else
                                 fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
                         }
