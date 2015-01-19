@@ -323,8 +323,8 @@ int codeGenConvertFromIntToFloat(int intRegIndex)
     char* reg2Name = NULL;
     codeGenPrepareRegister(INT_REG, intRegIndex, 1, 0, &reg2Name);
 
-    fprintf(g_codeGenOutputFp, "vmov.f32 %s %s\n", reg1Name, reg2Name);
-    fprintf(g_codeGenOutputFp, "vcvt.f32.s32 %s %s\n", reg1Name, reg1Name);
+    fprintf(g_codeGenOutputFp, "vmov.f32 %s, %s\n", reg1Name, reg2Name);
+    fprintf(g_codeGenOutputFp, "vcvt.f32.s32 %s, %s\n", reg1Name, reg1Name);
 
     codeGenSaveToMemoryIfPsuedoRegister(FLOAT_REG, floatRegisterIndex, reg1Name);
     return floatRegisterIndex;
@@ -335,7 +335,17 @@ int codeGenConvertFromFloatToInt(int floatRegIndex)
 {
     /*TODO*/
     int intRegisterIndex;
-    
+    char* reg1Name = NULL;
+    intRegisterIndex = getRegister(INT_REG);
+    codeGenPrepareRegister(INT_REG, intRegisterIndex, 0, 0, &reg1Name);
+
+    char* reg2Name = NULL;
+    codeGenPrepareRegister(FLOAT_REG, floatRegIndex, 1, 0, &reg2Name);
+
+    fprintf(g_codeGenOutputFp, "mov %s, %s\n", reg1Name, reg2Name);
+    fprintf(g_codeGenOutputFp, "vcvt.s32.f32 %s, %s\n", reg1Name, reg1Name);
+
+    codeGenSaveToMemoryIfPsuedoRegister(INT_REG, intRegisterIndex, reg1Name);
     return intRegisterIndex;
 }
 
@@ -966,7 +976,14 @@ void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode)
         if(leftOp->dataType == INT_TYPE)
         {
             char* rightOpRegName = NULL;
+            //type conversion
+            if(rightOp->dataType == FLOAT_TYPE)
+            {
+                rightOp->registerIndex = codeGenConvertFromFloatToInt(rightOp->registerIndex);
+            }
+
             codeGenPrepareRegister(INT_REG, rightOp->registerIndex, 1, 0, &rightOpRegName);
+            
             if(!isGlobalVariable(leftOp->semantic_value.identifierSemanticValue.symbolTableEntry))
             {
                 fprintf(g_codeGenOutputFp, "str %s, [fp, #%d]\n", rightOpRegName, leftOp->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR);
