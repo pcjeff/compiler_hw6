@@ -411,15 +411,25 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                             char* reg1Name = NULL;
                             if(val->dataType == FLOAT_TYPE)
                             {
+                                char* reg2Name = NULL;
                                 idNode->registerIndex = getRegister(FLOAT_REG);
                                 codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 1, 0, &reg1Name);
+                                int temp_reg = getRegister(INT_REG);
+                                codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &reg2Name);
+                                float temp = val->semantic_value.const1->const_u.fval;
+                                int constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &temp);
+                                fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", reg2Name, constantZeroLabelNumber);
+                                fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s,#0]\n", reg1Name, reg2Name);
                                 idNode->registerIndex = codeGenConvertFromFloatToInt(idNode->registerIndex);
                                 codeGenPrepareRegister(INT_REG, idNode->registerIndex, 1, 0, &reg1Name);
                             }
                             else
                             {
+
                                 idNode->registerIndex = getRegister(INT_REG);
                                 codeGenPrepareRegister(INT_REG, idNode->registerIndex,1 , 0, &reg1Name);
+                                fprintf(g_codeGenOutputFp, "mov %s, #%d\n", reg1Name,
+                                    val->semantic_value.const1->const_u.intval);
                             }
                             fprintf(g_codeGenOutputFp, "str %s, [fp,#%d]\n", reg1Name, idSymbolTableEntry->attribute->offsetInAR);
                             freeRegister(INT_REG, idNode->registerIndex);
