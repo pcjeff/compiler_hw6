@@ -401,14 +401,40 @@ void codeGenGlobalVariable(AST_NODE* varaibleDeclListNode)
                 TypeDescriptor* idTypeDescriptor = idSymbolTableEntry->attribute->attr.typeDescriptor;
                 if(idTypeDescriptor->kind == SCALAR_TYPE_DESCRIPTOR)
                 {
-                    if(idTypeDescriptor->properties.dataType == INT_TYPE)
+                    //type conversion
+                    if(idNode->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID)
                     {
-                        fprintf(g_codeGenOutputFp, "_g_%s: .word 0\n", idSymbolTableEntry->name);
+                        AST_NODE* val = idNode->child;
+                        if(idNode->dataType == INT_TYPE && val->dataType == FLOAT_TYPE)
+                        {
+                            val->semantic_value.const1->const_u.intval = val->semantic_value.const1->const_u.fval;
+                        }
+                        else if(idNode->dataType == FLOAT_TYPE  && val->dataType == INT_TYPE)
+                        {
+                            val->semantic_value.const1->const_u.fval = val->semantic_value.const1->const_u.intval;
+                        }
+                        if(idTypeDescriptor->properties.dataType == INT_TYPE)
+                        {
+                            fprintf(g_codeGenOutputFp, "_g_%s: .word %d\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.intval);
+                        }
+                        else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
+                        {
+                            fprintf(g_codeGenOutputFp, "_g_%s: .float %f\n", idSymbolTableEntry->name, val->semantic_value.const1->const_u.fval);
+                        }
                     }
-                    else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
+                    else
                     {
-                        fprintf(g_codeGenOutputFp, "_g_%s: .float 0.0\n", idSymbolTableEntry->name);
+                        if(idTypeDescriptor->properties.dataType == INT_TYPE)
+                        {
+                            if(idNode)
+                            fprintf(g_codeGenOutputFp, "_g_%s: .word 0\n", idSymbolTableEntry->name);
+                        }
+                        else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
+                        {
+                            fprintf(g_codeGenOutputFp, "_g_%s: .float 0.0\n", idSymbolTableEntry->name);
+                        }
                     }
+                    
                 }
                 else if(idTypeDescriptor->kind == ARRAY_TYPE_DESCRIPTOR)
                 {
