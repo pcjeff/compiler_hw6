@@ -327,6 +327,7 @@ int codeGenConvertFromIntToFloat(int intRegIndex)
     fprintf(g_codeGenOutputFp, "vcvt.f32.s32 %s, %s\n", reg1Name, reg1Name);
 
     codeGenSaveToMemoryIfPsuedoRegister(FLOAT_REG, floatRegisterIndex, reg1Name);
+    freeRegister(INT_REG, intRegIndex);
     return floatRegisterIndex;
 }
 
@@ -346,6 +347,7 @@ int codeGenConvertFromFloatToInt(int floatRegIndex)
     fprintf(g_codeGenOutputFp, "vmov.f32 %s, %s\n", reg1Name, reg2Name);
 
     codeGenSaveToMemoryIfPsuedoRegister(INT_REG, intRegisterIndex, reg1Name);
+    freeRegister(FLOAT_REg, floatRegIndex);
     return intRegisterIndex;
 }
 
@@ -1027,12 +1029,16 @@ void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode)
     else if(leftOp->semantic_value.identifierSemanticValue.kind == ARRAY_ID)
     {
         int elementAddressRegIndex = codeGenCalcArrayElemenetAddress(leftOp);
-
+        //can't be test before finishing codeGenCalcArrayElemenetAddress
         char* elementAddressRegName = NULL;
         codeGenPrepareRegister(INT_REG, elementAddressRegIndex, 1, 0, &elementAddressRegName);
         if(leftOp->dataType == INT_TYPE)
         {
             char* rightOpRegName = NULL;
+            if(rightOp->dataType == FLOAT_TYPE)
+            {
+                rightOp->registerIndex = codeGenConvertFromFloatToInt(rightOp->registerIndex);
+            }
             codeGenPrepareRegister(INT_REG, rightOp->registerIndex, 1, 1, &rightOpRegName);
             fprintf(g_codeGenOutputFp, "str %s, [%s, #0]\n", rightOpRegName, elementAddressRegName);
             
@@ -1041,6 +1047,10 @@ void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode)
         else if(leftOp->dataType == FLOAT_TYPE)
         {
             char* rightOpRegName = NULL;
+            if(rightOp->dataType == INT_TYPE)
+            {
+                rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+            }
             codeGenPrepareRegister(FLOAT_REG, rightOp->registerIndex, 1, 0, &rightOpRegName);
             
             fprintf(g_codeGenOutputFp, "vstr %s, [%s, #0]\n", rightOpRegName, elementAddressRegName);
@@ -1177,14 +1187,22 @@ void codeGenReturnStmt(AST_NODE* returnStmtNode)
         /* TODO type conversion */
 
         char* returnValRegName = NULL;
-        if (returnVal->dataType == INT_TYPE)
+        if (returnStmtNode->dataType == INT_TYPE)
         {
+            if(returnVal->dataType == FLOAT_TYPE)
+            {
+                returnVal->registerIndex = codeGenConvertFromIntToFloat(returnVal->registerIndex);
+            }
             codeGenPrepareRegister(INT_REG, returnVal->registerIndex, 1, 0, &returnValRegName);
             fprintf(g_codeGenOutputFp, "mov r0, %s\n", returnValRegName);
             freeRegister(INT_REG, returnVal->registerIndex);
         }
-        else if(returnVal->dataType == FLOAT_TYPE)
+        else if(returnStmtNode->dataType == FLOAT_TYPE)
         {
+            if(returnVal->dataType == INT_TYPE)
+            {
+                returnVal->registerIndex = codeGenConvertFromIntToFloat(returnVal->registerIndex);
+            }
             codeGenPrepareRegister(FLOAT_REG, returnVal->registerIndex, 1, 0, &returnValRegName);
             fprintf(g_codeGenOutputFp, "vmov s0, %s\n", returnValRegName);
             freeRegister(FLOAT_REG, returnVal->registerIndex);
