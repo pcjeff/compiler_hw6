@@ -347,7 +347,7 @@ int codeGenConvertFromFloatToInt(int floatRegIndex)
     fprintf(g_codeGenOutputFp, "vmov.f32 %s, %s\n", reg1Name, reg2Name);
 
     codeGenSaveToMemoryIfPsuedoRegister(INT_REG, intRegisterIndex, reg1Name);
-    freeRegister(FLOAT_REg, floatRegIndex);
+    freeRegister(FLOAT_REG, floatRegIndex);
     return intRegisterIndex;
 }
 
@@ -1191,7 +1191,7 @@ void codeGenReturnStmt(AST_NODE* returnStmtNode)
         {
             if(returnVal->dataType == FLOAT_TYPE)
             {
-                returnVal->registerIndex = codeGenConvertFromIntToFloat(returnVal->registerIndex);
+                returnVal->registerIndex = codeGenConvertFromFloatToInt(returnVal->registerIndex);
             }
             codeGenPrepareRegister(INT_REG, returnVal->registerIndex, 1, 0, &returnValRegName);
             fprintf(g_codeGenOutputFp, "mov r0, %s\n", returnValRegName);
