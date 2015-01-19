@@ -406,7 +406,7 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                     {
                         AST_NODE* val = idNode->child;
                         
-                        if(idNode->dataType == INT_TYPE)
+                        if(idNode->child->semantic_value.const1->const_type == INTEGERC)
                         {
                             char* reg1Name = NULL;
                             if(val->dataType == FLOAT_TYPE)
@@ -416,7 +416,7 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                             else
                             {}
                         }
-                        else if(idNode->dataType == FLOAT_TYPE)
+                        else if(idNode->child->semantic_value.const1->const_type == FLOATC)
                         {
                             char* reg1Name = NULL;
                             if(val->dataType == INT_TYPE)
@@ -1370,7 +1370,7 @@ void codeGenGeneralNode(AST_NODE* node)
     switch(node->nodeType)
     {
     case VARIABLE_DECL_LIST_NODE:
-        codeGenVariable(traverseChildren);
+        codeGenVariable(node);
         break;
     case STMT_LIST_NODE:
         while(traverseChildren)
