@@ -25,6 +25,8 @@ void codeGen2Reg1ImmInstruction(ProcessorType processorType, char* instruction, 
 int codeGenConvertFromIntToFloat(int intRegIndex);
 int codeGenConvertFromFloatToInt(int floatRegIndex);
 //*************************
+void codeGenVariable(AST_NODE *varaibleDeclListNode);
+
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
@@ -385,7 +387,71 @@ void codeGenProgramNode(AST_NODE *programNode)
     }
     return;
 }
-
+void codeGenVariable(AST_NODE *varaibleDeclListNode)
+{
+    AST_NODE *traverseDeclaration = varaibleDeclListNode->child;
+    while(traverseDeclaration)
+    {
+        if(traverseDeclaration->semantic_value.declSemanticValue.kind == VARIABLE_DECL)
+        {
+            AST_NODE *idNode = traverseDeclaration->child->rightSibling;
+            while(idNode)
+            {
+                SymbolTableEntry* idSymbolTableEntry = idNode->semantic_value.identifierSemanticValue.symbolTableEntry;
+                TypeDescriptor* idTypeDescriptor = idSymbolTableEntry->attribute->attr.typeDescriptor;
+                if(idTypeDescriptor->kind == SCALAR_TYPE_DESCRIPTOR)
+                {
+                    //type conversion
+                    if(idNode->semantic_value.identifierSemanticValue.kind == WITH_INIT_ID)
+                    {
+                        AST_NODE* val = idNode->child;
+                        
+                        if(idNode->dataType == INT_TYPE)
+                        {
+                            char* reg1Name = NULL;
+                            if(val->dataType == FLOAT_TYPE)
+                            {
+                                //idNode->registerIndex = 
+                            }
+                            else
+                            {}
+                        }
+                        else if(idNode->dataType == FLOAT_TYPE)
+                        {
+                            char* reg1Name = NULL;
+                            if(val->dataType == INT_TYPE)
+                            {
+                                idNode->registerIndex = getRegister(INT_REG);
+                                codeGenPrepareRegister(INT_REG, idNode->registerIndex,0, 0, &reg1Name);
+                                fprintf(g_codeGenOutputFp, "mov %s, #%d\n", reg1Name, 
+                                     val->semantic_value.const1->const_u.intval);
+                                idNode->registerIndex = codeGenConvertFromIntToFloat(idNode->registerIndex);
+                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 0, 0, &reg1Name);
+                            }
+                            else
+                            {
+                                char* reg2Name = NULL;
+                                idNode->registerIndex = getRegister(FLOAT_REG);
+                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 0, 0, &reg1Name);
+                                int temp_reg = getRegister(INT_REG);
+                                codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &reg2Name);
+                                int constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &val->semantic_value.const1->const_u.fval);
+                                fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", reg2Name, constantZeroLabelNumber);
+                                fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s,#0]\n", reg1Name, reg2Name);
+                                freeRegister(INT_REG, temp_reg);
+                            }
+                            //
+                            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [fp #%d]\n", reg1Name, idSymbolTableEntry->attribute->offsetInAR);
+                            freeRegister(FLOAT_REG, idNode->registerIndex);
+                        }
+                    }
+                }
+                idNode = idNode->rightSibling;
+            }
+        }
+        traverseDeclaration = traverseDeclaration->rightSibling;
+    }
+}
 
 void codeGenGlobalVariable(AST_NODE* varaibleDeclListNode)
 {
@@ -1304,6 +1370,7 @@ void codeGenGeneralNode(AST_NODE* node)
     switch(node->nodeType)
     {
     case VARIABLE_DECL_LIST_NODE:
+        codeGenVariable(traverseChildren);
         break;
     case STMT_LIST_NODE:
         while(traverseChildren)
