@@ -435,13 +435,14 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                                 codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 0, 0, &reg1Name);
                                 int temp_reg = getRegister(INT_REG);
                                 codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &reg2Name);
-                                int constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &val->semantic_value.const1->const_u.fval);
+                                float temp = val->semantic_value.const1->const_u.fval;
+                                int constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &temp);
                                 fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", reg2Name, constantZeroLabelNumber);
                                 fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s,#0]\n", reg1Name, reg2Name);
                                 freeRegister(INT_REG, temp_reg);
                             }
                             //
-                            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [fp #%d]\n", reg1Name, idSymbolTableEntry->attribute->offsetInAR);
+                            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [fp, #%d]\n", reg1Name, idSymbolTableEntry->attribute->offsetInAR);
                             freeRegister(FLOAT_REG, idNode->registerIndex);
                         }
                     }
