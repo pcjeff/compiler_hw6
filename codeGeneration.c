@@ -411,10 +411,18 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                             char* reg1Name = NULL;
                             if(val->dataType == FLOAT_TYPE)
                             {
-                                //idNode->registerIndex = 
+                                idNode->registerIndex = getRegister(FLOAT_REG);
+                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 1, 0, &reg1Name);
+                                idNode->registerIndex = codeGenConvertFromFloatToInt(idNode->registerIndex);
+                                codeGenPrepareRegister(INT_REG, idNode->registerIndex, 1, 0, &reg1Name);
                             }
                             else
-                            {}
+                            {
+                                idNode->registerIndex = getRegister(INT_REG);
+                                codeGenPrepareRegister(INT_REG, idNode->registerIndex,1 , 0, &reg1Name);
+                            }
+                            fprintf(g_codeGenOutputFp, "str %s, [fp,#%d]\n", reg1Name, idSymbolTableEntry->attribute->offsetInAR);
+                            freeRegister(INT_REG, idNode->registerIndex);
                         }
                         else if(idTypeDescriptor->properties.dataType == FLOAT_TYPE)
                         {
@@ -422,17 +430,17 @@ void codeGenVariable(AST_NODE *varaibleDeclListNode)
                             if(val->dataType == INT_TYPE)
                             {
                                 idNode->registerIndex = getRegister(INT_REG);
-                                codeGenPrepareRegister(INT_REG, idNode->registerIndex,0, 0, &reg1Name);
+                                codeGenPrepareRegister(INT_REG, idNode->registerIndex, 1, 0, &reg1Name);
                                 fprintf(g_codeGenOutputFp, "mov %s, #%d\n", reg1Name, 
                                      val->semantic_value.const1->const_u.intval);
                                 idNode->registerIndex = codeGenConvertFromIntToFloat(idNode->registerIndex);
-                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 0, 0, &reg1Name);
+                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 1, 0, &reg1Name);
                             }
                             else
                             {
                                 char* reg2Name = NULL;
                                 idNode->registerIndex = getRegister(FLOAT_REG);
-                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 0, 0, &reg1Name);
+                                codeGenPrepareRegister(FLOAT_REG, idNode->registerIndex, 1, 0, &reg1Name);
                                 int temp_reg = getRegister(INT_REG);
                                 codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &reg2Name);
                                 float temp = val->semantic_value.const1->const_u.fval;
