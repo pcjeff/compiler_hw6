@@ -28,6 +28,7 @@ int codeGenConvertFromFloatToInt(int floatRegIndex);
 void codeGenVariable(AST_NODE *varaibleDeclListNode);
 
 void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp, int and_or);
+void codeGen_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop, int and_or);
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
@@ -766,10 +767,12 @@ void codeGenExprNode(AST_NODE* exprNode)
                 codeGenSetReg(INT_REG, "movlt",exprNode->registerIndex, 1);
                 break;
             case BINARY_OP_AND:
-                codeGenLogicalInstruction(INT_REG, "and", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                //codeGenLogicalInstruction(INT_REG, "and", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                codeGen_shortcirANDOR(exprNode, leftOp, rightOp, 0);
                 break;
             case BINARY_OP_OR:
-                codeGenLogicalInstruction(INT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                codeGen_shortcirANDOR(exprNode, leftOp, rightOp, 1);
+                //codeGenLogicalInstruction(INT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 break;
             default:
                 printf("Unhandled case in void evaluateExprValue(AST_NODE* exprNode)\n");
@@ -830,6 +833,18 @@ void codeGenExprNode(AST_NODE* exprNode)
     }
 }
 /*
+是
+在BINARY_AND
+要先codeGenExprRelatedNode(leftOP)
+exprNode放0
+然後跟exprNode做cmp
+做beq andlabel%d
+再codeGenExprRelatedNode(rightOP)
+跟exprNode做cmp
+做beq andlabel%d
+exprNode放1
+最後設做andlabel%d:
+
 在BINARY_OR
 要先codeGenExprRelatedNode(leftOP)
 exprNode放1
@@ -841,12 +856,53 @@ exprNode放1
 exprNode放0
 最後設做orlabel%d:
 */
+void codeGen_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop, int and_or)
+{
+    //freeRegister(INT_REG, exprNode->registerIndex);
+    exprNode->registerIndex = getRegister(INT_REG);
+    //leftop->registerIndex = getRegister(INT_REG);
+    //rightop->registerIndex = getRegister(INT_REG);
+    char* reg1Name = NULL;
+    char* reg2Name = NULL;
+    char* reg3Name = NULL;
+    int and_lebel_num = getLabelNumber();
+    codeGenPrepareRegister(INT_REG, exprNode->registerIndex, 0, 0, &reg1Name);
+    codeGenPrepareRegister(INT_REG, leftop->registerIndex, 1, 0, &reg2Name);
+    //ldr 0 to epxrNode->register if and
+    //ldr 1 to epxrNode->register if or
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
+    else
+        fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
+    codeGenExprRelatedNode(leftop);
+    fprintf(g_codeGenOutputFp, "cmp %s, %s\n", reg1Name, reg2Name);
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    else
+        fprintf(g_codeGenOutputFp, "bne AND_OR_LABEL%d\n", and_lebel_num);
+
+    codeGenExprRelatedNode(rightop);
+    codeGenPrepareRegister(INT_REG, rightop->registerIndex, 1, 0, &reg3Name);
+    fprintf(g_codeGenOutputFp, "cmp %s, %s\n", reg1Name, reg3Name);
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    else
+        fprintf(g_codeGenOutputFp, "bne AND_OR_LABEL%d\n", and_lebel_num);
+    
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
+    else
+        fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
+
+    fprintf(g_codeGenOutputFp, "AND_OR_LABEL%d:\n", and_lebel_num);
+
+}
 void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop, int and_or)
 {
     ///and_or 0:for and, 1:for or
     exprNode->registerIndex = getRegister(INT_REG);
-    leftop->registerIndex = getRegister(FLOAT_REG);
-    rightop->registerIndex = getRegister(FLOAT_REG);
+    //leftop->registerIndex = getRegister(FLOAT_REG);
+    //rightop->registerIndex = getRegister(FLOAT_REG);
     int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
     int and_lebel_num = getLabelNumber();
     float float_value_0 = 0.0;
