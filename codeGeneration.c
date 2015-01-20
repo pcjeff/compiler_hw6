@@ -32,13 +32,13 @@ void codeGen_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* right
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
-void codeGenFunctionDeclaration(AST_NODE *functionDeclNode);
+void (AST_NODE *functionDeclNode);
 void codeGenGeneralNode(AST_NODE* node);
 void codeGenStmtNode(AST_NODE* stmtNode);
 void codeGenBlockNode(AST_NODE* blockNode);
 void codeGenWhileStmt(AST_NODE* whileStmtNode);
 void codeGenForStmt(AST_NODE* forStmtNode);
-void codeGenIfStmt(AST_NODE* ifStmtNode);
+void codeGenIfStmt(AST_NODcodeGenFunctionDeclarationE* ifStmtNode);
 void codeGenReturnStmt(AST_NODE* returnStmtNode);
 void codeGenAssignOrExpr(AST_NODE* testNode);
 void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode);
@@ -539,6 +539,7 @@ void codeGenGlobalVariable(AST_NODE* varaibleDeclListNode)
 void codeGenFunctionDeclaration(AST_NODE *functionDeclNode)
 {
     AST_NODE* functionIdNode = functionDeclNode->child->rightSibling;
+    AST_NODE* parameterList = functionIdNode->rightSibling;
     int i;
     
     g_currentFunctionName = functionIdNode->semantic_value.identifierSemanticValue.identifierName;
@@ -559,6 +560,15 @@ void codeGenFunctionDeclaration(AST_NODE *functionDeclNode)
     fprintf(g_codeGenOutputFp, "ldr lr, [lr, #0]\n");
     fprintf(g_codeGenOutputFp, "sub sp, sp, lr\n");
     printStoreRegister(g_codeGenOutputFp);
+
+    AST_NODE* actualParameter = NULL;
+    int offset=8;
+
+    for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
+    {
+        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
+        offset = offset + 4;
+    }
 
     resetRegisterTable(functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR);
 
@@ -1016,13 +1026,12 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
-    int offset=8;
+    int offset=4;
     int param_reg=0;
     char* param_name = NULL;
 
     for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
         if(actualParameter->dataType == INT_TYPE)
         {
             codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
