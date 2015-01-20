@@ -1020,7 +1020,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     int param_reg=0;
     char* param_name = NULL;
 
-    for(actualParameter = actualParameterList->child, int i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
+    for(actualParameter = ParameterList->child, i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
     {
         actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = 8 + i*4;
         if(actualParameter->dataType == INT_TYPE)
@@ -1030,7 +1030,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
         }
         else
         {
-            codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name)
+            codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name);
             fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, 4*i);    
         }
     }
