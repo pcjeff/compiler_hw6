@@ -970,6 +970,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
 {
     AST_NODE* functionIdNode = functionCallNode->child;
     AST_NODE* parameterList = functionIdNode->rightSibling;
+
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "write") == 0)
     {
         AST_NODE* firstParameter = parameterList->child;
@@ -1002,7 +1003,37 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
         }
         return;
     }
+    //pass parameters
+    int param_num = functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.functionSignature->parametersCount;
+    int param_num_reg = getRegister(INT_REG);
+    char* param_num_name = NULL;
+    codeGenPrepareRegister(INT_REG, param_num_reg, 0, 0, &param_num_name);
+    if(param_num%2 == 1) //for alignment
+        param_num++;
 
+    fprintf(g_codeGenOutputFp, "ldr %s, =%d\n", param_num_name, param_num*4);
+    fprintf(g_codeGenOutputFp, "sub sp, sp, %s\n", param_num_name);
+    freeRegister(INT_REG, param_num_reg);
+
+    AST_NODE* actualParameter = NULL;
+    int i=0;
+    int param_reg=0;
+    char* param_name = NULL;
+
+    for(actualParameter = actualParameterList->child, int i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
+    {
+        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = 8 + i*4;
+        if(actualParameter->dataType == INT_TYPE)
+        {
+            codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
+            fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, 4*i);    
+        }
+        else
+        {
+            codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name)
+            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, 4*i);    
+        }
+    }
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "read") == 0)
     {
@@ -1020,8 +1051,6 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
             fprintf(g_codeGenOutputFp, "bl %s\n", functionIdNode->semantic_value.identifierSemanticValue.identifierName);
         }
     }
-
-
 
 
     if (functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry) {
@@ -1046,6 +1075,11 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
             codeGenSaveToMemoryIfPsuedoRegister(INT_REG, functionCallNode->registerIndex, returnfloatRegName);
         }
     }
+    param_num_reg = getRegister(INT_REG);
+    codeGenPrepareRegister(INT_REG, param_num_reg, 0, 0, &param_num_name);
+    fprintf(g_codeGenOutputFp, "ldr %s, =%d\n", param_num_name, param_num*4);
+    fprintf(g_codeGenOutputFp, "add sp, sp, %s\n", param_num_name);
+    freeRegister(INT_REG, param_num_reg);
 }
 
 
