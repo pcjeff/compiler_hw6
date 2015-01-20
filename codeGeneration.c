@@ -26,7 +26,8 @@ int codeGenConvertFromIntToFloat(int intRegIndex);
 int codeGenConvertFromFloatToInt(int floatRegIndex);
 //*************************
 void codeGenVariable(AST_NODE *varaibleDeclListNode);
-void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp);
+
+void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp, int and_or);
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
@@ -699,14 +700,15 @@ void codeGenExprNode(AST_NODE* exprNode)
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_AND:
-                codeGen_float_shortcirAND(exprNode, leftOp, rightOp);
+                codeGen_float_shortcirANDOR(exprNode, leftOp, rightOp, 0);
                 //exprNode->registerIndex = getRegister(INT_REG);
                 //codeGenLogicalInstruction(FLOAT_REG, "and", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_OR:
-                exprNode->registerIndex = getRegister(INT_REG);
-                codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                codeGen_float_shortcirANDOR(exprNode, leftOp, rightOp, 1);
+                //exprNode->registerIndex = getRegister(INT_REG);
+                //codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             default:
@@ -827,15 +829,18 @@ void codeGenExprNode(AST_NODE* exprNode)
         }
     }
 }
-void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop)
+
+void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop, int and_or)
 {
+    ///and_or 0:for and, 1:for or
     exprNode->registerIndex = getRegister(INT_REG);
     leftop->registerIndex = getRegister(FLOAT_REG);
     rightop->registerIndex = getRegister(FLOAT_REG);
     int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
     int and_lebel_num = getLabelNumber();
     float float_value_0 = 0.0;
-    int constantLabelNumber = codeGenConstantLabel(FLOATC, &float_value_0);
+    float float_value_1 = 1.0;
+    int constantLabelNumber = codeGenConstantLabel(FLOATC, and_or == 0? &float_value_0: &float_value_1);
     char* reg1Name = NULL;
     char* reg2Name = NULL;
     char* reg3Name = NULL;
@@ -845,14 +850,17 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     char* const_name = NULL;
     codeGenPrepareRegister(FLOAT_REG, temp_reg2, 0, 0, &const_name);//ldr const 0.0 to s%d
 
-
     //ldr 0.0 to temp_name
     codeGenPrepareRegister(INT_REG, temp_reg, 0, 1, &temp_name);  
     fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", temp_name, constantLabelNumber);
     fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s, #0]\n", const_name, temp_name);
     freeRegister(INT_REG, temp_reg);
-    //ldr 0 to epxrNode->register
-    fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
+    //ldr 0 to epxrNode->register if and
+    //ldr 1 to epxrNode->register if or
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
+    else
+        fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
     //cmp 0.0 with leftop
     codeGenExprRelatedNode(leftop);
     if(leftop->dataType == INT_TYPE)
@@ -862,7 +870,7 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg2Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
-    fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", and_lebel_num);
+    fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
     if(rightop->dataType == INT_TYPE)
@@ -872,11 +880,15 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg3Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
-    fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", and_lebel_num);
-    //ldr 1 to epxrNode->register
-    fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
+    fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    //ldr 1 to epxrNode->register if and
+    //ldr 0 to exprNode->register if or
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
+    else
+        fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
 
-    fprintf(g_codeGenOutputFp, "AND_LABEL%d:\n", and_lebel_num);
+    fprintf(g_codeGenOutputFp, "AND_OR_LABEL%d:\n", and_lebel_num);
     freeRegister(FLOAT_REG, temp_reg2);
 
 }
