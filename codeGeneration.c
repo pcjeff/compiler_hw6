@@ -1020,7 +1020,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     int param_reg=0;
     char* param_name = NULL;
 
-    for(actualParameter = ParameterList->child, i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
+    for(actualParameter = parameterList->child, i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
     {
         actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = 8 + i*4;
         if(actualParameter->dataType == INT_TYPE)
