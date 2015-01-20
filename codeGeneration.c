@@ -26,7 +26,7 @@ int codeGenConvertFromIntToFloat(int intRegIndex);
 int codeGenConvertFromFloatToInt(int floatRegIndex);
 //*************************
 void codeGenVariable(AST_NODE *varaibleDeclListNode);
-
+void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp);
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
@@ -607,12 +607,17 @@ void codeGenBlockNode(AST_NODE* blockNode)
 
 void codeGenExprNode(AST_NODE* exprNode)
 {
+    
     if(exprNode->semantic_value.exprSemanticValue.kind == BINARY_OPERATION)
     {
         AST_NODE* leftOp = exprNode->child;
-        AST_NODE* rightOp = leftOp->rightSibling;
-        codeGenExprRelatedNode(leftOp);
-        codeGenExprRelatedNode(rightOp);
+        exprNode->semantic_value.exprSemanticValue.op.binaryOp
+        if(exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_AND &&
+           exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_OR)
+        {
+            codeGenExprRelatedNode(leftOp);
+            codeGenExprRelatedNode(rightOp);
+        }
         if(leftOp->dataType == FLOAT_TYPE || rightOp->dataType == FLOAT_TYPE)
         {
             if(leftOp->dataType == INT_TYPE)
@@ -696,8 +701,9 @@ void codeGenExprNode(AST_NODE* exprNode)
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_OR:
-                exprNode->registerIndex = getRegister(INT_REG);
-                codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                //exprNode->registerIndex = getRegister(INT_REG);
+                //codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                codeGen_float_shortcirAND(exprNode, leftop, rightop);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             default:
@@ -818,7 +824,50 @@ void codeGenExprNode(AST_NODE* exprNode)
         }
     }
 }
+void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp)
+{
+    int exprNode->registerIndex = getRegister(INT_REG);
+    int leftOp->registerIndex = getRegister(FLOAT_REG);
+    int rightOp->registerIndex = getRegister(FLOAT_REG);
+    int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
+    
+    int constantLabelNumber = constantLabelNumber();
+    float float_value_0 = 0.0;
+    char* reg1Name = NULL;
+    char* reg2Name = NULL;
+    char* reg3Name = NULL;
+    char* temp_name = NULL;
+    codeGenPrepareRegister(INT_REG, exprNode->registerIndex, 0, 0, &reg1Name);
+    int temp_reg2 = getRegister(FLOAT_REG);
+    char* const_name = NULL;
+    codeGenPrepareRegister(FLOAT_REG, temp_reg2, 0, 0, &const_name);//ldr const 0.0 to s%d
 
+    //ldr 0.0 to temp_name
+    codeGenPrepareRegister(INT_REG, temp_reg, 0, 1, &temp_name);  
+    fprintf(g_codeGenOutputFp, "ldr %s _CONSTANT_%d\n", temp_name, codeGenConstantLabel(FLOATC, &float_value_0));
+    fprintf(g_codeGenOutputFp, "vldr.f32 %s [%s, #0]\n", const_name, temp_name);
+    freeRegister(INT_REG, temp_reg);
+    //ldr 0 to epxrNode->register
+    fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
+    //cmp 0.0 with leftop
+    codeGenExprRelatedNode(leftop);
+    codeGenPrepareRegister(FLOAT_REG, leftOp->registerIndex, 1, 1, &reg2Name);
+    fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg2Name, const_name);
+    fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
+    fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
+    //cmp 0.0 with rightop
+    codeGenExprRelatedNode(rightop);
+    codeGenPrepareRegister(FLOAT_REG, rightOp->registerIndex, 1, 1, &reg3Name);
+    fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg3Name, const_name);
+    fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
+    fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
+    //ldr 1 to epxrNode->register
+    fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
+
+    fprintf(g_codeGenOutputFp, "AND_LABEL%d\n", getLabelNumber());
+    freeRegister(FLOAT_REG, temp_reg2);
+
+}
 
 void codeGenFunctionCall(AST_NODE* functionCallNode)
 {
