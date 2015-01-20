@@ -566,7 +566,7 @@ void codeGenFunctionDeclaration(AST_NODE *functionDeclNode)
 
     for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        actualParameter>child->rightSibling->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
+        actualParameter->child->rightSibling->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
         offset = offset + 4;
     }
 
@@ -870,8 +870,8 @@ void codeGen_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* right
 {
     //freeRegister(INT_REG, exprNode->registerIndex);
     exprNode->registerIndex = getRegister(INT_REG);
-    //leftop->registerIndex = getRegister(INT_REG);
-    //rightop->registerIndex = getRegister(INT_REG);
+    leftop->registerIndex = getRegister(INT_REG);
+    rightop->registerIndex = getRegister(INT_REG);
     char* reg1Name = NULL;
     char* reg2Name = NULL;
     char* reg3Name = NULL;
@@ -911,8 +911,8 @@ void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE*
 {
     ///and_or 0:for and, 1:for or
     exprNode->registerIndex = getRegister(INT_REG);
-    //leftop->registerIndex = getRegister(FLOAT_REG);
-    //rightop->registerIndex = getRegister(FLOAT_REG);
+    leftop->registerIndex = getRegister(FLOAT_REG);
+    rightop->registerIndex = getRegister(FLOAT_REG);
     int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
     int and_lebel_num = getLabelNumber();
     float float_value_0 = 0.0;
