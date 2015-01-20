@@ -611,7 +611,7 @@ void codeGenExprNode(AST_NODE* exprNode)
     if(exprNode->semantic_value.exprSemanticValue.kind == BINARY_OPERATION)
     {
         AST_NODE* leftOp = exprNode->child;
-        AST_NODE* rightOp = leftop->rightSibling;
+        AST_NODE* rightOp = leftOp->rightSibling;
         if(exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_AND &&
            exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_OR)
         {
@@ -696,14 +696,14 @@ void codeGenExprNode(AST_NODE* exprNode)
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_AND:
-                exprNode->registerIndex = getRegister(INT_REG);
-                codeGenLogicalInstruction(FLOAT_REG, "and", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
+                codeGen_float_shortcirAND(exprNode, leftOp, rightOp);
+                //exprNode->registerIndex = getRegister(INT_REG);
+                //codeGenLogicalInstruction(FLOAT_REG, "and", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             case BINARY_OP_OR:
-                //exprNode->registerIndex = getRegister(INT_REG);
-                //codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
-                codeGen_float_shortcirAND(exprNode, leftOp, rightOp);
+                exprNode->registerIndex = getRegister(INT_REG);
+                codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             default:
@@ -844,27 +844,27 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
 
     //ldr 0.0 to temp_name
     codeGenPrepareRegister(INT_REG, temp_reg, 0, 1, &temp_name);  
-    fprintf(g_codeGenOutputFp, "ldr %s _CONSTANT_%d\n", temp_name, codeGenConstantLabel(FLOATC, &float_value_0));
-    fprintf(g_codeGenOutputFp, "vldr.f32 %s [%s, #0]\n", const_name, temp_name);
+    fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", temp_name, codeGenConstantLabel(FLOATC, &float_value_0));
+    fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s, #0]\n", const_name, temp_name);
     freeRegister(INT_REG, temp_reg);
     //ldr 0 to epxrNode->register
     fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
     //cmp 0.0 with leftop
     codeGenExprRelatedNode(leftop);
     codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
-    fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg2Name, const_name);
+    fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg2Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
     codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
-    fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg3Name, const_name);
+    fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg3Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
     //ldr 1 to epxrNode->register
     fprintf(g_codeGenOutputFp, "mov %s, #1\n", reg1Name);
 
-    fprintf(g_codeGenOutputFp, "AND_LABEL%d\n", getLabelNumber());
+    fprintf(g_codeGenOutputFp, "AND_LABEL%d:\n", getLabelNumber());
     freeRegister(FLOAT_REG, temp_reg2);
 
 }
