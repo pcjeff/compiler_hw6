@@ -1440,11 +1440,11 @@ void codeGenForStmt(AST_NODE* forStmtNode)
         float zero = 0.0f;
         constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &zero);
     }
-
+    codeGenAssignmentStmt(init_node->child);
     int labelNumber = getLabelNumber();
     fprintf(g_codeGenOutputFp, "_Test%d:\n", labelNumber);
 
-    codeGenAssignOrExpr(bool_node);
+    codeGenAssignOrExpr(bool_node->child);
     if(bool_node->child->dataType == INT_TYPE)
     {
         char* bool_reg_name = NULL;
