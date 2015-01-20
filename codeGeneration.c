@@ -566,7 +566,7 @@ void codeGenFunctionDeclaration(AST_NODE *functionDeclNode)
 
     for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
+        actualParameter>child->rightSibling->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
         offset = offset + 4;
     }
 
