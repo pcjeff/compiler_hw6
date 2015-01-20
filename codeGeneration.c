@@ -1016,23 +1016,24 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
-    int i=0;
+    int offset=8;
     int param_reg=0;
     char* param_name = NULL;
 
-    for(actualParameter = parameterList->child, i=0 ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling, i++)
+    for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = 8 + i*4;
+        actualParameter->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->offsetInAR = offset;
         if(actualParameter->dataType == INT_TYPE)
         {
             codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
-            fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, 4*i);    
+            fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, offset*1/4-1);    
         }
         else
         {
             codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name);
-            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, 4*i);    
+            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset*1/4-1);    
         }
+        offset = offset + 4;
     }
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "read") == 0)
