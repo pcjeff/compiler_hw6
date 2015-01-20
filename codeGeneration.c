@@ -611,7 +611,7 @@ void codeGenExprNode(AST_NODE* exprNode)
     if(exprNode->semantic_value.exprSemanticValue.kind == BINARY_OPERATION)
     {
         AST_NODE* leftOp = exprNode->child;
-        exprNode->semantic_value.exprSemanticValue.op.binaryOp
+        
         if(exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_AND &&
            exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_OR)
         {
@@ -826,13 +826,13 @@ void codeGenExprNode(AST_NODE* exprNode)
 }
 void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop)
 {
-    int exprNode->registerIndex = getRegister(INT_REG);
-    int leftop->registerIndex = getRegister(FLOAT_REG);
-    int rightop->registerIndex = getRegister(FLOAT_REG);
+    exprNode->registerIndex = getRegister(INT_REG);
+    leftop->registerIndex = getRegister(FLOAT_REG);
+    rightop->registerIndex = getRegister(FLOAT_REG);
     int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
     
-    int constantLabelNumber = constantLabelNumber();
     float float_value_0 = 0.0;
+    int constantLabelNumber = codeGenConstantLabel(FLOATC, &float_value_0);
     char* reg1Name = NULL;
     char* reg2Name = NULL;
     char* reg3Name = NULL;
