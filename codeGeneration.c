@@ -855,9 +855,9 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
     //cmp 0.0 with leftop
     codeGenExprRelatedNode(leftop);
-    if(leftOp->dataType == INT_TYPE)
+    if(leftop->dataType == INT_TYPE)
     {
-        leftOp->registerIndex = codeGenConvertFromIntToFloat(leftOp->registerIndex);
+        leftop->registerIndex = codeGenConvertFromIntToFloat(leftop->registerIndex);
     }
     codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg2Name, const_name);
@@ -865,9 +865,9 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", and_lebel_num);
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
-    if(rightOp->dataType == INT_TYPE)
+    if(rightop->dataType == INT_TYPE)
     {
-        rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+        rightop->registerIndex = codeGenConvertFromIntToFloat(rightop->registerIndex);
     }
     codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg3Name, const_name);
