@@ -620,15 +620,18 @@ void codeGenExprNode(AST_NODE* exprNode)
         }
         if(leftOp->dataType == FLOAT_TYPE || rightOp->dataType == FLOAT_TYPE)
         {
-            if(leftOp->dataType == INT_TYPE)
+            if(exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_AND &&
+                exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_OR)
             {
-                leftOp->registerIndex = codeGenConvertFromIntToFloat(leftOp->registerIndex);
+                if(leftOp->dataType == INT_TYPE)
+                {
+                    leftOp->registerIndex = codeGenConvertFromIntToFloat(leftOp->registerIndex);
+                }
+                if(rightOp->dataType == INT_TYPE)
+                {
+                    rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+                }
             }
-            if(rightOp->dataType == INT_TYPE)
-            {
-                rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
-            }
-            
             switch(exprNode->semantic_value.exprSemanticValue.op.binaryOp)
             {
             case BINARY_OP_ADD:
@@ -842,6 +845,7 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     char* const_name = NULL;
     codeGenPrepareRegister(FLOAT_REG, temp_reg2, 0, 0, &const_name);//ldr const 0.0 to s%d
 
+
     //ldr 0.0 to temp_name
     codeGenPrepareRegister(INT_REG, temp_reg, 0, 1, &temp_name);  
     fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", temp_name, constantLabelNumber);
@@ -851,12 +855,20 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
     fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
     //cmp 0.0 with leftop
     codeGenExprRelatedNode(leftop);
+    if(leftOp->dataType == INT_TYPE)
+    {
+        leftOp->registerIndex = codeGenConvertFromIntToFloat(leftOp->registerIndex);
+    }
     codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg2Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", and_lebel_num);
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
+    if(rightOp->dataType == INT_TYPE)
+    {
+        rightOp->registerIndex = codeGenConvertFromIntToFloat(rightOp->registerIndex);
+    }
     codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg3Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
