@@ -824,11 +824,11 @@ void codeGenExprNode(AST_NODE* exprNode)
         }
     }
 }
-void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* rightOp)
+void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop)
 {
     int exprNode->registerIndex = getRegister(INT_REG);
-    int leftOp->registerIndex = getRegister(FLOAT_REG);
-    int rightOp->registerIndex = getRegister(FLOAT_REG);
+    int leftop->registerIndex = getRegister(FLOAT_REG);
+    int rightop->registerIndex = getRegister(FLOAT_REG);
     int temp_reg = getRegister(INT_REG);//for load address of constant 0.0
     
     int constantLabelNumber = constantLabelNumber();
@@ -851,13 +851,13 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftOp, AST_NODE* r
     fprintf(g_codeGenOutputFp, "mov %s, #0\n", reg1Name);
     //cmp 0.0 with leftop
     codeGenExprRelatedNode(leftop);
-    codeGenPrepareRegister(FLOAT_REG, leftOp->registerIndex, 1, 1, &reg2Name);
+    codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg2Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
-    codeGenPrepareRegister(FLOAT_REG, rightOp->registerIndex, 1, 1, &reg3Name);
+    codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s %s\n", reg3Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
     fprintf(g_codeGenOutputFp, "beq AND_LABEL%d\n", getLabelNumber());
