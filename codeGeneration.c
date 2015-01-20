@@ -1026,12 +1026,12 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
         if(actualParameter->dataType == INT_TYPE)
         {
             codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
-            fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, offset-4);    
+            fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, offset);    
         }
         else
         {
             codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name);
-            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset-4);    
+            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset);    
         }
         offset = offset + 4;
     }
