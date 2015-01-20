@@ -844,7 +844,7 @@ void codeGen_float_shortcirAND(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* r
 
     //ldr 0.0 to temp_name
     codeGenPrepareRegister(INT_REG, temp_reg, 0, 1, &temp_name);  
-    fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", temp_name, codeGenConstantLabel(FLOATC, &float_value_0));
+    fprintf(g_codeGenOutputFp, "ldr %s, =_CONSTANT_%d\n", temp_name, constantLabelNumber);
     fprintf(g_codeGenOutputFp, "vldr.f32 %s, [%s, #0]\n", const_name, temp_name);
     freeRegister(INT_REG, temp_reg);
     //ldr 0 to epxrNode->register
