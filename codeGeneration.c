@@ -1435,7 +1435,7 @@ void codeGenForStmt(AST_NODE* forStmtNode)
     AST_NODE* block_node = inc_node->rightSibling;
 
     int constantZeroLabelNumber = -1;
-    if(boolExpression->dataType == FLOAT_TYPE)
+    if(bool_node->dataType == FLOAT_TYPE)
     {
         float zero = 0.0f;
         constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &zero);
