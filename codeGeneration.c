@@ -1429,6 +1429,52 @@ void codeGenWhileStmt(AST_NODE* whileStmtNode)
 void codeGenForStmt(AST_NODE* forStmtNode)
 {
     /*TODO*/
+    AST_NODE* init_node = forStmtNode->child;
+    AST_NODE* bool_node = init_node->rightSibling;
+    AST_NODE* inc_node = bool_node->rightSibling;
+    AST_NODE* block_node = inc_node->rightSibling;
+
+    int constantZeroLabelNumber = -1;
+    if(boolExpression->dataType == FLOAT_TYPE)
+    {
+        float zero = 0.0f;
+        constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &zero);
+    }
+
+    int labelNumber = getLabelNumber();
+    fprintf(g_codeGenOutputFp, "_Test%d:\n", labelNumber);
+
+    codeGenAssignOrExpr(bool_node);
+    if(bool_node->child->dataType == INT_TYPE)
+    {
+        char* bool_reg_name = NULL;
+        codeGenPrepareRegister(INT_REG, bool_node->child->registerIndex, 1, 0, &bool_reg_name);
+        fprintf(g_codeGenOutputFp, "cmp %s, #0\n", bool_reg_name);
+        fprintf(g_codeGenOutputFp, "beq _Lexit%d\n", labelNumber);
+        fprintf(g_codeGenOutputFp, "b _Body%d\n", labelNumber);
+    }
+    else
+    {
+        fprintf(g_codeGenOutputFp, "vldr.f32 %s, _CONSTANT_%d\n", floatWorkRegisterName[0], constantZeroLabelNumber);
+        char* bool_reg_name = NULL;
+        codeGenPrepareRegister(FLOAT_REG, bool_node->child->registerIndex, 1, 1, &bool_reg_name);
+        fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", bool_reg_name, floatWorkRegisterName[0]);
+        fprintf(g_codeGenOutputFp, "vmrs  APSR_nzcv, FPSCR\n");
+        fprintf(g_codeGenOutputFp, "beq _Lexit%d\n",labelNumber);
+        fprintf(g_codeGenOutputFp, "b _Body%d\n", labelNumber);
+        freeRegister(FLOAT_REG, bool_node->child->registerIndex);
+    }
+
+    fprintf(g_codeGenOutputFp, "_Inc%d:\n", labelNumber);
+    
+    codeGenAssignmentStmt(inc_node->child);
+    fprintf(g_codeGenOutputFp, "b _Test%d\n", labelNumber);
+    fprintf(g_codeGenOutputFp, "_Body%d:\n", labelNumber);
+
+    codeGenStmtNode(block_node);
+    fprintf(g_codeGenOutputFp, "b _Inc%d\n", labelNumber);
+
+    fprintf(g_codeGenOutputFp, "_Lexit%d:\n", labelNumber);  
 }
 
 
