@@ -611,7 +611,7 @@ void codeGenExprNode(AST_NODE* exprNode)
     if(exprNode->semantic_value.exprSemanticValue.kind == BINARY_OPERATION)
     {
         AST_NODE* leftOp = exprNode->child;
-        
+        AST_NODE* rightOp = leftop->rightSibling;
         if(exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_AND &&
            exprNode->semantic_value.exprSemanticValue.op.binaryOp != BINARY_OP_OR)
         {
@@ -703,7 +703,7 @@ void codeGenExprNode(AST_NODE* exprNode)
             case BINARY_OP_OR:
                 //exprNode->registerIndex = getRegister(INT_REG);
                 //codeGenLogicalInstruction(FLOAT_REG, "orr", exprNode->registerIndex, leftOp->registerIndex, rightOp->registerIndex);
-                codeGen_float_shortcirAND(exprNode, leftop, rightop);
+                codeGen_float_shortcirAND(exprNode, leftOp, rightOp);
                 freeRegister(FLOAT_REG, leftOp->registerIndex);
                 break;
             default:
