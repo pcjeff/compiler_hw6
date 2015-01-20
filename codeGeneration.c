@@ -829,7 +829,18 @@ void codeGenExprNode(AST_NODE* exprNode)
         }
     }
 }
-
+/*
+在BINARY_OR
+要先codeGenExprRelatedNode(leftOP)
+exprNode放1
+然後跟exprNode做cmp
+做bne orlabel%d
+再codeGenExprRelatedNode(rightOP)
+跟exprNode做cmp
+做bne orlabel%d
+exprNode放0
+最後設做orlabel%d:
+*/
 void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* rightop, int and_or)
 {
     ///and_or 0:for and, 1:for or
@@ -870,7 +881,10 @@ void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE*
     codeGenPrepareRegister(FLOAT_REG, leftop->registerIndex, 1, 1, &reg2Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg2Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
-    fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    else
+        fprintf(g_codeGenOutputFp, "bne AND_OR_LABEL%d\n", and_lebel_num);
     //cmp 0.0 with rightop
     codeGenExprRelatedNode(rightop);
     if(rightop->dataType == INT_TYPE)
@@ -880,7 +894,10 @@ void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE*
     codeGenPrepareRegister(FLOAT_REG, rightop->registerIndex, 1, 1, &reg3Name);
     fprintf(g_codeGenOutputFp, "vcmp.f32 %s, %s\n", reg3Name, const_name);
     fprintf(g_codeGenOutputFp, "VMRS APSR_nzcv, FPSCR\n");
-    fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    if(and_or == 0)
+        fprintf(g_codeGenOutputFp, "beq AND_OR_LABEL%d\n", and_lebel_num);
+    else
+        fprintf(g_codeGenOutputFp, "bne AND_OR_LABEL%d\n", and_lebel_num);
     //ldr 1 to epxrNode->register if and
     //ldr 0 to exprNode->register if or
     if(and_or == 0)
