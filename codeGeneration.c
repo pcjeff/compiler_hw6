@@ -32,13 +32,13 @@ void codeGen_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE* right
 
 void codeGenProgramNode(AST_NODE *programNode);
 void codeGenGlobalVariable(AST_NODE *varaibleDeclListNode);
-void (AST_NODE *functionDeclNode);
+void codeGenFunctionDeclaration(AST_NODE *functionDeclNode);
 void codeGenGeneralNode(AST_NODE* node);
 void codeGenStmtNode(AST_NODE* stmtNode);
 void codeGenBlockNode(AST_NODE* blockNode);
 void codeGenWhileStmt(AST_NODE* whileStmtNode);
 void codeGenForStmt(AST_NODE* forStmtNode);
-void codeGenIfStmt(AST_NODcodeGenFunctionDeclarationE* ifStmtNode);
+void codeGenIfStmt(AST_NODE* ifStmtNode);
 void codeGenReturnStmt(AST_NODE* returnStmtNode);
 void codeGenAssignOrExpr(AST_NODE* testNode);
 void codeGenAssignmentStmt(AST_NODE* assignmentStmtNode);
