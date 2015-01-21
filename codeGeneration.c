@@ -979,11 +979,15 @@ void codeGen_float_shortcirANDOR(AST_NODE* exprNode, AST_NODE* leftop, AST_NODE*
 void codeGenFunctionCall(AST_NODE* functionCallNode)
 {
     AST_NODE* functionIdNode = functionCallNode->child;
-    AST_NODE* parameterList = functionIdNode->rightSibling;
+    AST_NODE* actualparameterList = functionIdNode->rightSibling;
+    SymbolAttribute* attribute = NULL;
+    attribute = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+    attribute = functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute;
+
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "write") == 0)
     {
-        AST_NODE* firstParameter = parameterList->child;
+        AST_NODE* firstParameter = actualparameterList->child;
         codeGenExprRelatedNode(firstParameter);
         char* parameterRegName = NULL;
         switch(firstParameter->dataType)
@@ -1026,23 +1030,33 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
+    AST_NODE* formalParameter = attribute->attr.functionSignature->parameterList->child;
     int offset=4;
     int param_reg=0;
     char* param_name = NULL;
 
-    for(actualParameter = parameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
+    for(actualParameter = actualparameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        if(actualParameter->dataType == INT_TYPE)
+        if(formalParameter->dataType == INT_TYPE)
         {
+            if(actualParameter->dataType == FLOAT_TYPE)
+            {
+                actualParameter->registerIndex = codeGenConvertFromFloatToInt(actualParameter->registerIndex);
+            }
             codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
             fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, offset);    
         }
         else
         {
+            if(actualParameter->dataType == INT_TYPE)
+            {
+                actualParameter->registerIndex = codeGenConvertFromIntToFloat(actualParameter->registerIndex);
+            }
             codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name);
             fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset);    
         }
         offset = offset + 4;
+        formalParameter = formalParameter->rightSibling;
     }
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "read") == 0)
