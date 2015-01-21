@@ -1114,7 +1114,6 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
     AST_NODE* traverseDim = idNode->child;
     int* sizeInEachDimension = idNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.typeDescriptor->properties.arrayProperties.sizeInEachDimension;
     
-
     int dimensions = idNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.typeDescriptor->properties.arrayProperties.dimension;
     int dimIndex = 1;
     char* regName = NULL, *temp_name = NULL;
@@ -1137,6 +1136,7 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
             codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
             codeGen3RegInstruction(INT_REG, "mul", temp_reg, temp_reg, temp_reg2);
         }
+        freeRegister(INT_REG, linearIdxRegisterIndex);
         dimIndex++;
         traverseDim = traverseDim->rightSibling;
     }
