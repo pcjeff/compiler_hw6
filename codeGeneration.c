@@ -1122,8 +1122,7 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
     traverseDim = traverseDim->rightSibling;
     int i =0;
     int temp_reg = -1;
-    int temp_reg2 = -1;
-    temp_reg2 = getRegister(INT_REG);
+    temp_reg = getRegister(INT_REG);
 
     /*TODO multiple dimensions*/
     while(traverseDim)
@@ -1483,6 +1482,7 @@ void codeGenForStmt(AST_NODE* forStmtNode)
     AST_NODE* bool_node = init_node->rightSibling;
     AST_NODE* inc_node = bool_node->rightSibling;
     AST_NODE* block_node = inc_node->rightSibling;
+    int labelNumber = getLabelNumber();
 
     int constantZeroLabelNumber = -1;
     if(bool_node->dataType == FLOAT_TYPE)
@@ -1490,10 +1490,19 @@ void codeGenForStmt(AST_NODE* forStmtNode)
         float zero = 0.0f;
         constantZeroLabelNumber = codeGenConstantLabel(FLOATC, &zero);
     }
-    codeGenAssignmentStmt(init_node->child);
-    int labelNumber = getLabelNumber();
-    fprintf(g_codeGenOutputFp, "_Test%d:\n", labelNumber);
 
+    init_node = init_node->child;
+    while(init_node)
+    {
+        codeGenAssignmentStmt(init_node);
+        if(init_node->dataType == INT_TYPE)
+            freeRegister(INT_REG, init_node->registerIndex);
+        else
+            freeRegister(FLOAT_REG, init_node->registerIndex);
+        init_node = init_node->rightSibling;  
+    }
+
+    fprintf(g_codeGenOutputFp, "_Test%d:\n", labelNumber);
     codeGenAssignOrExpr(bool_node->child);
     if(bool_node->child->dataType == INT_TYPE)
     {
@@ -1517,7 +1526,19 @@ void codeGenForStmt(AST_NODE* forStmtNode)
 
     fprintf(g_codeGenOutputFp, "_Inc%d:\n", labelNumber);
     
-    codeGenAssignmentStmt(inc_node->child);
+
+    //codeGenAssignmentStmt(inc_node->child);
+    inc_node = inc_node->child;
+    while(inc_node)
+    {
+        codeGenAssignmentStmt(inc_node);
+        if(inc_node->dataType == INT_TYPE)
+            freeRegister(INT_REG, inc_node->registerIndex);
+        else
+            freeRegister(FLOAT_REG, inc_node->registerIndex);
+        inc_node = inc_node->rightSibling;  
+    }
+
     fprintf(g_codeGenOutputFp, "b _Test%d\n", labelNumber);
     fprintf(g_codeGenOutputFp, "_Body%d:\n", labelNumber);
 
