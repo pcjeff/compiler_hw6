@@ -1117,26 +1117,33 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
 
     int dimensions = idNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.typeDescriptor->properties.arrayProperties.dimension;
     int dimIndex = 1;
-    char* regName = NULL, temp_name = NULL;
+    char* regName = NULL, *temp_name = NULL;
     int linearIdxRegisterIndex = traverseDim->registerIndex;
     int temp_reg = -1;
+    int temp_reg2 = -1;
     temp_reg = getRegister(INT_REG);
-    codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &temp_name);
-    fprintf(g_codeGenOutputFp, "mov %s, #0\n", temp_name);
+    temp_reg2 = getRegister(INT_REG);
+    codeGenSetReg(INT_REG, "mov", temp_reg, 0);
+
     /*TODO multiple dimensions*/
     while(traverseDim)
     {
         codeGenExprRelatedNode(traverseDim);
         linearIdxRegisterIndex = traverseDim->registerIndex;
-        codeGenPrepareRegister(INT_REG, linearIdxRegisterIndex, 1, 0, &regName);
-        fprintf(g_codeGenOutputFp, "add %s, %s, %s\n", regName, regName, temp_name);
+        codeGen3RegInstruction(INT_REG, "add", temp_reg, temp_reg, linearIdxRegisterIndex);
+
         if(dimIndex < dimensions)
-            fprintf(g_codeGenOutputFp, "mul %s, %s #%d\n", temp_name, regName, sizeInEachDimension[dimIndex]);
+        {
+            codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
+            codeGen3RegInstruction(INT_REG, "mul", temp_reg, temp_reg, temp_reg2);
+            //fprintf(g_codeGenOutputFp, "mul %s, %s, #%d\n", temp_name, regName, sizeInEachDimension[dimIndex]);
+        }
         freeRegister(INT_REG, linearIdxRegisterIndex);
         dimIndex++;
         traverseDim = traverseDim->rightSibling;
     }
     freeRegister(INT_REG, temp_reg);
+    freeRegister(INT_REG, temp_reg2);
     
     int shiftLeftTwoBits = 2;
     codeGen2Reg1ImmInstruction(INT_REG, "lsl", linearIdxRegisterIndex, linearIdxRegisterIndex, &shiftLeftTwoBits);
