@@ -1045,6 +1045,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
             }
             codeGenPrepareRegister(INT_REG, actualParameter->registerIndex, 1, 0, &param_name);
             fprintf(g_codeGenOutputFp, "str %s, [sp, #%d]\n", param_name, offset);    
+            freeRegister(INT_REG, actualParameter->registerIndex);
         }
         else
         {
@@ -1053,7 +1054,8 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
                 actualParameter->registerIndex = codeGenConvertFromIntToFloat(actualParameter->registerIndex);
             }
             codeGenPrepareRegister(FLOAT_REG, actualParameter->registerIndex,1 ,0, &param_name);
-            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset);    
+            fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset);
+            freeRegister(FLOAT_REG, actualParameter->registerIndex);    
         }
         offset = offset + 4;
         formalParameter = formalParameter->next;
