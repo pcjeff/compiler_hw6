@@ -1030,14 +1030,14 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
-    AST_NODE* formalParameter = attribute->attr.functionSignature->parameterList;
+    Parameter* formalParameter = attribute->attr.functionSignature->parameterList;
     int offset=4;
     int param_reg=0;
     char* param_name = NULL;
 
     for(actualParameter = actualparameterList->child ; actualParameter != NULL ; actualParameter = actualParameter->rightSibling)
     {
-        if(formalParameter->dataType == INT_TYPE)
+        if(formalParameter->type->properties.dataType == INT_TYPE)
         {
             if(actualParameter->dataType == FLOAT_TYPE)
             {
