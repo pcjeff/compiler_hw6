@@ -1030,7 +1030,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
-    AST_NODE* formalParameter = attribute->attr.functionSignature->parameterList->child;
+    AST_NODE* formalParameter = attribute->attr.functionSignature->parameterList;
     int offset=4;
     int param_reg=0;
     char* param_name = NULL;
@@ -1056,7 +1056,7 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
             fprintf(g_codeGenOutputFp, "vstr.f32 %s, [sp, #%d]\n", param_name, offset);    
         }
         offset = offset + 4;
-        formalParameter = formalParameter->rightSibling;
+        formalParameter = formalParameter->next;
     }
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "read") == 0)
