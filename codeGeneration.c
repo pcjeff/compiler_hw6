@@ -980,10 +980,6 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
 {
     AST_NODE* functionIdNode = functionCallNode->child;
     AST_NODE* actualparameterList = functionIdNode->rightSibling;
-    SymbolAttribute* attribute = NULL;
-    attribute = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
-    attribute = functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute;
-
 
     if(strcmp(functionIdNode->semantic_value.identifierSemanticValue.identifierName, "write") == 0)
     {
@@ -1030,7 +1026,11 @@ void codeGenFunctionCall(AST_NODE* functionCallNode)
     freeRegister(INT_REG, param_num_reg);
 
     AST_NODE* actualParameter = NULL;
-    Parameter* formalParameter = attribute->attr.functionSignature->parameterList;
+    //SymbolAttribute* attribute = NULL;
+    //attribute = (SymbolAttribute*)malloc(sizeof(SymbolAttribute));
+    //attribute = functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute;
+
+    Parameter* formalParameter = functionIdNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.functionSignature->parameterList;
     int offset=4;
     int param_reg=0;
     char* param_name = NULL;
