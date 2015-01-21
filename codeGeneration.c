@@ -1114,34 +1114,39 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
     AST_NODE* traverseDim = idNode->child;
     int* sizeInEachDimension = idNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.typeDescriptor->properties.arrayProperties.sizeInEachDimension;
     
-    int dimensions = idNode->semantic_value.identifierSemanticValue.symbolTableEntry->attribute->attr.typeDescriptor->properties.arrayProperties.dimension;
     int dimIndex = 1;
     char* regName = NULL, *temp_name = NULL;
+
+    codeGenExprRelatedNode(traverseDim);
     int linearIdxRegisterIndex = traverseDim->registerIndex;
+    traverseDim = traverseDim->rightSibling;
+    int i =0;
     int temp_reg = -1;
     int temp_reg2 = -1;
-    temp_reg = getRegister(INT_REG);
     temp_reg2 = getRegister(INT_REG);
-    codeGenSetReg(INT_REG, "mov", temp_reg, 0);
 
     /*TODO multiple dimensions*/
     while(traverseDim)
     {
         codeGenExprRelatedNode(traverseDim);
-        linearIdxRegisterIndex = traverseDim->registerIndex;
-        codeGen3RegInstruction(INT_REG, "add", temp_reg, temp_reg, linearIdxRegisterIndex);
-
-        if(dimIndex < dimensions)
+        if(i==0)
         {
             codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
-            codeGen3RegInstruction(INT_REG, "mul", temp_reg, temp_reg, temp_reg2);
+            codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex, linearIdxRegisterIndex, temp_reg2);   
+            i++;
+            dimIndex++;
         }
-        freeRegister(INT_REG, linearIdxRegisterIndex);
+
+        codeGen3RegInstruction(INT_REG, "add", linearIdxRegisterIndex, linearIdxRegisterIndex, traverseDim->registerIndex);
+        freeRegister(INT_REG, traverseDim->registerIndex);
+        if(traverseDim->rightSibling)
+        {
+            codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
+            codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex, linearIdxRegisterIndex, temp_reg2);
+        }
         dimIndex++;
         traverseDim = traverseDim->rightSibling;
     }
-    codeGen2RegInstruction(INT_REG, "mov", linearIdxRegisterIndex, temp_reg);
-    freeRegister(INT_REG, temp_reg);
     freeRegister(INT_REG, temp_reg2);
     
 
