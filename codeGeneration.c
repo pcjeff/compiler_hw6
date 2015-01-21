@@ -1136,15 +1136,15 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
         {
             codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
             codeGen3RegInstruction(INT_REG, "mul", temp_reg, temp_reg, temp_reg2);
-            //fprintf(g_codeGenOutputFp, "mul %s, %s, #%d\n", temp_name, regName, sizeInEachDimension[dimIndex]);
         }
-        freeRegister(INT_REG, linearIdxRegisterIndex);
         dimIndex++;
         traverseDim = traverseDim->rightSibling;
     }
+    codeGen2RegInstruction(INT_REG, "mov", linearIdxRegisterIndex, temp_reg);
     freeRegister(INT_REG, temp_reg);
     freeRegister(INT_REG, temp_reg2);
     
+
     int shiftLeftTwoBits = 2;
     codeGen2Reg1ImmInstruction(INT_REG, "lsl", linearIdxRegisterIndex, linearIdxRegisterIndex, &shiftLeftTwoBits);
     
