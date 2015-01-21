@@ -1131,24 +1131,33 @@ int codeGenCalcArrayElemenetAddress(AST_NODE* idNode)
         codeGenExprRelatedNode(traverseDim);
         if(i==0)
         {
-            codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
-            codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex, linearIdxRegisterIndex, temp_reg2);   
+            //codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
+            codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &temp_name);
+            fprintf(g_codeGenOutputFp, "mov %s, #%d\n", temp_name,  sizeInEachDimension[dimIndex]);
+            codeGenPrepareRegister(INT_REG, linearIdxRegisterIndex, 1, 0, &regName);
+            fprintf(g_codeGenOutputFp, "mul %s, %s, %s\n", regName, regName, temp_name);
+            //codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex, linearIdxRegisterIndex, temp_reg2);   
             i++;
             dimIndex++;
+            freeRegister(INT_REG, temp_reg);
         }
 
-        codeGen3RegInstruction(INT_REG, "add", linearIdxRegisterIndex, linearIdxRegisterIndex, traverseDim->registerIndex);
+        //codeGen3RegInstruction(INT_REG, "add", linearIdxRegisterIndex, linearIdxRegisterIndex, traverseDim->registerIndex);
+        codeGenPrepareRegister(INT_REG, traverseDim->registerIndex, 1, 0, &temp_name);
+        fprintf(g_codeGenOutputFp, "add %s, %s, %s\n", regName, regName, temp_name);
         freeRegister(INT_REG, traverseDim->registerIndex);
+
         if(traverseDim->rightSibling)
         {
-            codeGenSetReg(INT_REG, "mov", temp_reg2, sizeInEachDimension[dimIndex]);
-            codeGen3RegInstruction(INT_REG, "mul", linearIdxRegisterIndex, linearIdxRegisterIndex, temp_reg2);
+            codeGenPrepareRegister(INT_REG, temp_reg, 0, 0, &temp_name);
+            fprintf(g_codeGenOutputFp, "mov %s, #%d\n", temp_name,  sizeInEachDimension[dimIndex]);
+            codeGenPrepareRegister(INT_REG, linearIdxRegisterIndex, 1, 0, &regName);
+            fprintf(g_codeGenOutputFp, "mul %s, %s, %s\n", regName, regName, temp_name);
+            freeRegister(INT_REG, temp_reg);
         }
         dimIndex++;
         traverseDim = traverseDim->rightSibling;
-    }
-    freeRegister(INT_REG, temp_reg2);
-    
+    }    
 
     int shiftLeftTwoBits = 2;
     codeGen2Reg1ImmInstruction(INT_REG, "lsl", linearIdxRegisterIndex, linearIdxRegisterIndex, &shiftLeftTwoBits);
