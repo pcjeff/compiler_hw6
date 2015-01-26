@@ -95,7 +95,7 @@ void codeGenSetReg(ProcessorType processorType, char* instruction, int reg1Index
 	fprintf(g_codeGenOutputFp, "%s %s, #%d\n",instruction, reg1Name, value);
 	codeGenSaveToMemoryIfPsuedoRegister(processorType, reg1Index, reg1Name);
 }
-
+//123
 void codeGenGetBoolOfFloat(int boolRegIndex, int floatRegIndex)
 {
 
